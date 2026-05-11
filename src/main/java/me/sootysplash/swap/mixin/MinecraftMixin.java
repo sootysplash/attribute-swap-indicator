@@ -18,8 +18,11 @@ public class MinecraftMixin {
             at = @At("HEAD")
     )
     private void onInputs(CallbackInfo ci) {
-
-
+        for (int i = itemSwaps.size() - 1; i >= 0; i--) {
+            if (System.currentTimeMillis() - itemSwaps.get(i).addTime() > inputExpireTime) {
+                itemSwaps.remove(i);
+            }
+        }
 
         KeyPressData selectKPD = new KeyPressData(0, -1, -1);
         for (int i = 0; i < mc.options.keyHotbarSlots.length; i++) {
@@ -41,11 +44,14 @@ public class MinecraftMixin {
         }
 
         if (selectKPD.lastKey() == -1
+                || selectKPD.lastKey() == selectKPD.key()
                 || attack2PressTime.isEmpty()) {
             return;
         }
 
-        long attackTime = attack2PressTime.get(attack2PressTime.size() - 1);
+        long attackTime = attack2PressTime.remove(attack2PressTime.size() - 1);
+        attack2PressTime.clear();
+        hotbarKey2PressTime.clear();
 
         itemSwaps.add(new ItemSwapSequence(
                 selectKPD.lastKey(),
@@ -54,12 +60,6 @@ public class MinecraftMixin {
                 attackTime,
                 System.currentTimeMillis()
         ));
-
-        for (int i = itemSwaps.size() - 1; i >= 0; i--) {
-            if (System.currentTimeMillis() - itemSwaps.get(i).addTime() > inputExpireTime) {
-                itemSwaps.remove(i);
-            }
-        }
     }
 
 }
