@@ -1,6 +1,7 @@
 package me.sootysplash.swap.mixin;
 
-import me.sootysplash.swap.object.KeyPressData;
+import me.sootysplash.swap.object.AttackKeyPressData;
+import me.sootysplash.swap.object.HotbarKeyPressData;
 import net.minecraft.client.KeyMapping;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,12 +21,13 @@ public class KeyMappingMixin {
         for (int i = 0; i < mc.options.keyHotbarSlots.length; i++) {
             KeyMapping hotbarI = mc.options.keyHotbarSlots[i];
             if (hotbarI == keyMapping) {
-                hotbarKey2PressTime.put(i, new KeyPressData(i));
+                hotbarKey2PressTime.put(i, new HotbarKeyPressData(i));
             }
         }
 
         if (keyMapping == mc.options.keyAttack) {
-            attack2PressTime.add(System.currentTimeMillis());
+            attack2PressTime.add(new AttackKeyPressData(System.currentTimeMillis(),
+                    getCurrentTick()));
         }
     }
 }

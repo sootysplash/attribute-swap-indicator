@@ -1,7 +1,9 @@
 package me.sootysplash.swap.mixin;
 
+import me.sootysplash.swap.AttributeSwapIndicator;
+import me.sootysplash.swap.object.AttackKeyPressData;
 import me.sootysplash.swap.object.ItemSwapSequence;
-import me.sootysplash.swap.object.KeyPressData;
+import me.sootysplash.swap.object.HotbarKeyPressData;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,26 +21,26 @@ public class MinecraftMixin {
     )
     private void onInputs(CallbackInfo ci) {
         for (int i = itemSwaps.size() - 1; i >= 0; i--) {
-            if (System.currentTimeMillis() - itemSwaps.get(i).addTime() > inputExpireTime) {
+            if (System.currentTimeMillis() - itemSwaps.get(i).addTime() > AttributeSwapIndicator.getInputExpireTime()) {
                 itemSwaps.remove(i);
             }
         }
 
-        KeyPressData selectKPD = new KeyPressData(0, -1, -1);
+        HotbarKeyPressData selectKPD = new HotbarKeyPressData(0, 0, -1, -1);
         for (int i = 0; i < mc.options.keyHotbarSlots.length; i++) {
-            KeyPressData keyPressData = hotbarKey2PressTime.get(i);
+            HotbarKeyPressData keyPressData = hotbarKey2PressTime.get(i);
             if (keyPressData != null) {
                 if (selectKPD.otherWasLater(keyPressData)) {
                     selectKPD = keyPressData;
                 }
-                if (System.currentTimeMillis() - keyPressData.time() > inputExpireTime) {
+                if (System.currentTimeMillis() - keyPressData.time() > AttributeSwapIndicator.getKeyExpireTime()) {
                     hotbarKey2PressTime.remove(i);
                 }
             }
         }
 
         for (int i = attack2PressTime.size() - 1; i >= 0; i--) {
-            if (System.currentTimeMillis() - attack2PressTime.get(i) > inputExpireTime) {
+            if (System.currentTimeMillis() - attack2PressTime.get(i).time() > AttributeSwapIndicator.getKeyExpireTime()) {
                 attack2PressTime.remove(i);
             }
         }
@@ -49,16 +51,21 @@ public class MinecraftMixin {
             return;
         }
 
-        long attackTime = attack2PressTime.remove(attack2PressTime.size() - 1);
+        AttackKeyPressData attackTime = attack2PressTime.remove(attack2PressTime.size() - 1);
         attack2PressTime.clear();
         hotbarKey2PressTime.clear();
 
         itemSwaps.add(new ItemSwapSequence(
                 selectKPD.lastKey(),
                 selectKPD.key(),
+                getForSlot(selectKPD.lastKey()),
+                getForSlot(selectKPD.key()),
                 selectKPD.time(),
-                attackTime,
-                System.currentTimeMillis()
+                selectKPD.tick(),
+                attackTime.time(),
+                attackTime.tick(),
+                System.currentTimeMillis(),
+                getCurrentTick()
         ));
     }
 
