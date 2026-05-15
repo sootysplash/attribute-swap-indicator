@@ -1,5 +1,6 @@
 package me.sootysplash.swap;
 
+import me.sootysplash.swap.mixin.DeltaTracker$TimerAccessor;
 import me.sootysplash.swap.object.AttackKeyPressData;
 import me.sootysplash.swap.object.ItemSwapSequence;
 import me.sootysplash.swap.object.HotbarKeyPressData;
@@ -15,33 +16,57 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 
 public class AttributeSwapIndicator implements ModInitializer {
-    public static long getInputExpireTime() {
-        return 3000;
+    public static final Logger LOGGER = LoggerFactory.getLogger("AttributeSwapIndicator");
+
+    public static int getInputExpireTime() {
+        return Math.round(Config.getInstance().inputExpireSeconds * 1000);
     }
 
-    public static long getKeyExpireTime() {
-        return 1000;
+    public static int getKeyExpireTime() {
+        return Math.round(Config.getInstance().keyExpireSeconds * 1000);
+    }
+
+    public static void setupCleanupTick() {
+        double msPerTick = 50;
+        if (mc.getDeltaTracker() instanceof DeltaTracker.Timer timer) {
+            msPerTick = ((DeltaTracker$TimerAccessor) timer).getMsPerTick();
+        }
+        tickToTime.clear();
+        cleanupTick = (int) (getCurrentTick() - Math.ceil(getInputExpireTime() / msPerTick) * 2);
     }
 
     public static final Minecraft mc = Minecraft.getInstance();
     public static final String MOD_ID = "attribute-swap-indicator";
+
+    public static int cleanupTick = 0;
+    public static final Map<Integer, Long> tickToTime = new HashMap<>();
 
     public static final Map<Integer, HotbarKeyPressData> hotbarKey2PressTime = new HashMap<>();
     public static final List<AttackKeyPressData> attack2PressTime = new ArrayList<>();
 
     public static final List<ItemSwapSequence> itemSwaps = new ArrayList<>();
 
+    private static int lastTick = -1;
+    public static final int widthI = 0;
+    public static final int standaloneI = 1;
+    public static final int sequenceI = 2;
+    public static final int lastCountedTypeI = 3;
+    public static final int[] invertStandAndSeq = {0, sequenceI, standaloneI, 0};
+
     @Override
     public void onInitialize() {
         HudElementRegistry.attachElementBefore(VanillaHudElements.CROSSHAIR,
                 Identifier.fromNamespaceAndPath(MOD_ID, "before_crosshair"),
                 AttributeSwapIndicator::extract);
+        setupCleanupTick();
     }
 
     private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
@@ -49,75 +74,113 @@ public class AttributeSwapIndicator implements ModInitializer {
     }
 
     private static void internalExtract(GuiGraphicsExtractor graphics) {
-//        if (itemSwaps.isEmpty()) {
-//            return;
-//        }
+        Config config = Config.getInstance();
+        if (!config.enabled) {
+            return;
+        }
+        double scale = config.scale;
+        double inverseScale = 1 / scale;
         graphics.pose().pushMatrix();
-//        graphics.pose().scale(0.2f, 0.2f);
-        int renderWidth = getWidth(0, 0, Optional.empty());
+        graphics.pose().translate(config.xOffset, config.yOffset);
+        graphics.pose().scale((float) scale, (float) scale);
+        int renderWidth = getWidth(config, 0, 0, itemSwaps, true, Optional.empty())[0];
         int y = graphics.guiHeight() / 2 + 24;
-        int originX = graphics.guiWidth() / 2 - renderWidth / 2;
-        getWidth(originX, y, Optional.of(graphics));
+        int originX = graphics.guiWidth() / 2;
+        getWidth(config, (int) (originX * inverseScale) - renderWidth / 2 + 4, (int) (y * inverseScale), itemSwaps, true, Optional.of(graphics));
         graphics.pose().popMatrix();
     }
 
-    private static int getWidth(int startX, int y, Optional<GuiGraphicsExtractor> doRender) {
+    public static int[] getWidth(Config config,
+                                  int startX,
+                                  int y,
+                                  List<ItemSwapSequence> listISS,
+                                  boolean useLimits,
+                                  Optional<GuiGraphicsExtractor> doRender) {
         int[] lastKey = {-1};
-        int[] currentX = {startX};
         Font font = mc.font;
-        int itemRenderStride = 18;
-        int arrowRenderStride = 14;
+        int itemRenderStride = 28;
+        int arrowRenderStride = 20;
+        int[] counters = {startX, 0, 0, standaloneI};
+        boolean hadFirstPrevItem = false;
+        int bufferForNextAdd = 0;
 
-        for (ItemSwapSequence iss : itemSwaps) {
+
+        for (ItemSwapSequence iss : listISS) {
             if (lastKey[0] != iss.lastKey()) {
+                if (!hadFirstPrevItem) {
+                    bufferForNextAdd = 1;
+                    hadFirstPrevItem = true;
+                } else {
+                    counters[standaloneI] += 1 + bufferForNextAdd;
+                    counters[lastCountedTypeI] = standaloneI;
+                    bufferForNextAdd = 0;
+                }
+                if (counters[standaloneI] - 1 == config.standaloneSwaps && useLimits) {
+                    break;
+                }
                 doRender.ifPresent(graphics -> {
-                    graphics.item(iss.lastStack(), currentX[0], y);
+                    graphics.item(iss.lastStack(), counters[widthI], y);
                 });
-                currentX[0] += itemRenderStride;
+                counters[widthI] += itemRenderStride;
+            } else {
+                counters[sequenceI] += 1 + bufferForNextAdd;
+                counters[lastCountedTypeI] = sequenceI;
+                bufferForNextAdd = 0;
             }
 
             boolean goodHotbar = iss.hotbarTick() == iss.addTick();
             boolean goodAttack = iss.attackTick() == iss.addTick();
             boolean successfulSwap = goodAttack && goodHotbar;
             doRender.ifPresent(graphics -> {
-                graphics.text(font, "->", currentX[0], y, -1);
+                graphics.text(font, "--", counters[widthI], y, -1);
+
                 int goodRGB = new Color(0, 255, 0).getRGB();
-                int midRGB = new Color(255, 255, 0).getRGB();
                 int badRGB = new Color(255, 0, 0).getRGB();
-                int downwardsStride = 8;
-                int centerTextX = currentX[0] - (int) (arrowRenderStride * 0.75);
-                graphics.text(font,
-                        successfulSwap ? "✔" : (goodHotbar ? "⚠" : "❌"),
-                        currentX[0] - (!successfulSwap && goodHotbar ? 3 : 0),
-                        y + downwardsStride,
-                        successfulSwap ? goodRGB : (goodHotbar ? midRGB : badRGB));
-                graphics.text(font,
-                        (iss.addTime() - iss.attackTime()) + "ms",
-                        centerTextX,
-                        y + downwardsStride * 2,
-                        goodAttack ? goodRGB : badRGB);
-                graphics.text(font,
-                        (iss.addTime() - iss.hotbarTime()) + "ms",
-                        centerTextX,
-                        y + downwardsStride * 3,
-                        goodHotbar ? goodRGB : badRGB);
+                int downwardsStride = 10;
+                int centerTextX = counters[widthI] - (int) (arrowRenderStride * 0.8);
+                long addCutOff = tickToTime.getOrDefault(iss.addTick() - 1, 0L);
+
+                String text = successfulSwap ? "✔" : ((!goodAttack
+                                ? "⚔:+" + (addCutOff - iss.attackTime())
+                                : "→:+" + (addCutOff - iss.hotbarTime())) + "ms");
+
+                graphics.text(
+                        font,
+                        text,
+                        successfulSwap ? counters[widthI] : centerTextX,
+                        y + downwardsStride * (successfulSwap ? 1 : 2),
+                        successfulSwap ? goodRGB : badRGB
+                );
+
             });
-            currentX[0] += arrowRenderStride;
+            counters[widthI] += arrowRenderStride;
 
             doRender.ifPresent(graphics -> {
-                graphics.item(iss.newStack(), currentX[0], y);
+                graphics.item(iss.newStack(), counters[widthI], y);
             });
             lastKey[0] = iss.newKey();
-            currentX[0] += itemRenderStride;
+            counters[widthI] += itemRenderStride;
+
+            if (counters[sequenceI] == config.sequentialSwaps && useLimits) {
+                break;
+            }
         }
 
+        if (bufferForNextAdd != 0) {
+            counters[standaloneI] += bufferForNextAdd;
+        }
 
-        currentX[0] -= startX;
-        return currentX[0];
+        counters[widthI] -= startX;
+        return counters;
     }
 
     public static int getCurrentTick() {
-        return mc.player != null ? mc.player.tickCount : 0;
+        int currentTick = mc.player != null ? mc.player.tickCount : 0;
+        if (lastTick > currentTick) {
+            setupCleanupTick();
+        }
+        lastTick = currentTick;
+        return currentTick;
     }
 
     public static ItemStack getForSlot(int slot) {

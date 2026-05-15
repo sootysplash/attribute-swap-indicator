@@ -1,6 +1,7 @@
 package me.sootysplash.swap.mixin;
 
 import me.sootysplash.swap.AttributeSwapIndicator;
+import me.sootysplash.swap.Config;
 import me.sootysplash.swap.object.AttackKeyPressData;
 import me.sootysplash.swap.object.ItemSwapSequence;
 import me.sootysplash.swap.object.HotbarKeyPressData;
@@ -9,6 +10,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Optional;
 
 import static me.sootysplash.swap.AttributeSwapIndicator.*;
 
@@ -20,6 +23,12 @@ public class MinecraftMixin {
             at = @At("HEAD")
     )
     private void onInputs(CallbackInfo ci) {
+        tickToTime.remove(cleanupTick++);
+        tickToTime.put(getCurrentTick(), System.currentTimeMillis());
+        Config config = Config.getInstance();
+        if (!config.enabled) {
+            return;
+        }
         for (int i = itemSwaps.size() - 1; i >= 0; i--) {
             if (System.currentTimeMillis() - itemSwaps.get(i).addTime() > AttributeSwapIndicator.getInputExpireTime()) {
                 itemSwaps.remove(i);
@@ -67,6 +76,31 @@ public class MinecraftMixin {
                 System.currentTimeMillis(),
                 getCurrentTick()
         ));
+
+        int[] counters = AttributeSwapIndicator.getWidth(
+                config,
+                0,
+                0,
+                itemSwaps,
+                false,
+                Optional.empty()
+        );
+
+        int lastCountedType = counters[lastCountedTypeI];
+        int invertLastCountedType = invertStandAndSeq[lastCountedType];
+        int countToRemove = counters[invertLastCountedType];
+        counters[invertLastCountedType] = 0;
+        if (countToRemove > 0) {
+            itemSwaps.subList(0, countToRemove).clear();
+        }
+
+        int[] configOptions = new int[]{0, config.standaloneSwaps, config.sequentialSwaps};
+        for (int i : new int[]{standaloneI, sequenceI}) {
+            while (configOptions[i] < counters[i]) {
+                itemSwaps.remove(0);
+                counters[i]--;
+            }
+        }
     }
 
 }

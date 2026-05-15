@@ -1,5 +1,6 @@
 package me.sootysplash.swap.mixin;
 
+import me.sootysplash.swap.Config;
 import me.sootysplash.swap.object.AttackKeyPressData;
 import me.sootysplash.swap.object.HotbarKeyPressData;
 import net.minecraft.client.KeyMapping;
@@ -18,6 +19,9 @@ public class KeyMappingMixin {
             at = @At(value = "HEAD")
     )
     private static void onHandleHead(KeyMapping keyMapping, CallbackInfo ci) {
+        if (!Config.getInstance().enabled) {
+            return;
+        }
         for (int i = 0; i < mc.options.keyHotbarSlots.length; i++) {
             KeyMapping hotbarI = mc.options.keyHotbarSlots[i];
             if (hotbarI == keyMapping) {

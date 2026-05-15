@@ -3,15 +3,23 @@
   "id": "attribute-swap-indicator",
   "version": "${version}",
   "name": "Attribute Swap Indicator",
-  "description": "",
-  "authors": [],
-  "contact": {},
+  "description": "Adds a GUI element to observe your success/failure with attribute swaps.",
+  "authors": [
+    "Sootysplash"
+  ],
+  "contact": {
+    "homepage": "https://github.com/sootysplash",
+    "sources": "https://github.com/sootysplash/attribute-swap-indicator"
+  },
   "license": "GPL-3.0",
   "icon": "assets/attribute-swap-indicator/icon.png",
   "environment": "client",
   "entrypoints": {
     "main": [
       "me.sootysplash.swap.AttributeSwapIndicator"
+    ],
+    "modmenu": [
+      "me.sootysplash.swap.ModMenu"
     ]
   },
   "mixins": [
@@ -20,6 +28,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "${minecraft_version}",
+    "cloth-config": "*"
   }
 }
