@@ -76,9 +76,6 @@ sourceSets {
         java {
             exclude 'me/sootysplash/swap/Testing**'
         }
-        resources {
-            exclude 'me/sootysplash/swap/Testing**'
-        }
     }
 }
 
