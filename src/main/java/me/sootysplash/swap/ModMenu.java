@@ -54,7 +54,7 @@ public class ModMenu implements ModMenuApi {
 
             limits.addEntry(cfgent.startIntField(Component.nullToEmpty("Standalone Swaps"), config.standaloneSwaps)
                     .setMin(1)
-                    .setDefaultValue(1)
+                    .setDefaultValue(2)
                     .setTooltip(Component.nullToEmpty("The base hitbox's color"))
                     .setSaveConsumer(newValue -> config.standaloneSwaps = newValue)
                     .build());
@@ -62,7 +62,7 @@ public class ModMenu implements ModMenuApi {
 
             limits.addEntry(cfgent.startIntField(Component.nullToEmpty("Sequential Swaps"), config.sequentialSwaps)
                     .setMin(1)
-                    .setDefaultValue(2)
+                    .setDefaultValue(3)
                     .setTooltip(Component.nullToEmpty("The hitbox eye height color"))
                     .setSaveConsumer(newValue -> config.sequentialSwaps = newValue)
                     .build());

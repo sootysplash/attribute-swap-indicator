@@ -21,8 +21,8 @@ public class Config {
     public float inputExpireSeconds = 3;
     public float keyExpireSeconds = 1;
 
-    public int standaloneSwaps = 1;
-    public int sequentialSwaps = 2;
+    public int standaloneSwaps = 2;
+    public int sequentialSwaps = 3;
 
 
     public void save() {

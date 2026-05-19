@@ -20,7 +20,7 @@ public class MinecraftMixin {
 
     @Inject(
             method = "handleKeybinds",
-            at = @At("HEAD")
+            at = @At("RETURN")
     )
     private void onInputs(CallbackInfo ci) {
         tickToTime.remove(cleanupTick++);
@@ -67,14 +67,10 @@ public class MinecraftMixin {
         itemSwaps.add(new ItemSwapSequence(
                 selectKPD.lastKey(),
                 selectKPD.key(),
-                getForSlot(selectKPD.lastKey()),
-                getForSlot(selectKPD.key()),
                 selectKPD.time(),
                 selectKPD.tick(),
                 attackTime.time(),
-                attackTime.tick(),
-                System.currentTimeMillis(),
-                getCurrentTick()
+                attackTime.tick()
         ));
 
         int[] counters = AttributeSwapIndicator.getWidth(
@@ -101,6 +97,15 @@ public class MinecraftMixin {
                 counters[i]--;
             }
         }
+    }
+
+    @Inject(
+            method = "tick",
+            at = @At("RETURN")
+    )
+    private void onTick(CallbackInfo ci) {
+        currentTick++;
+//        me.sootysplash.swap.Testing.onInputs();
     }
 
 }

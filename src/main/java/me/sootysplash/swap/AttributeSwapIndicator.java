@@ -46,6 +46,7 @@ public class AttributeSwapIndicator implements ModInitializer {
     public static final Minecraft mc = Minecraft.getInstance();
     public static final String MOD_ID = "attribute-swap-indicator";
 
+    public static int currentTick = 0;
     public static int cleanupTick = 0;
     public static final Map<Integer, Long> tickToTime = new HashMap<>();
 
@@ -54,7 +55,6 @@ public class AttributeSwapIndicator implements ModInitializer {
 
     public static final List<ItemSwapSequence> itemSwaps = new ArrayList<>();
 
-    private static int lastTick = -1;
     public static final int widthI = 0;
     public static final int standaloneI = 1;
     public static final int sequenceI = 2;
@@ -101,20 +101,18 @@ public class AttributeSwapIndicator implements ModInitializer {
         int itemRenderStride = 28;
         int arrowRenderStride = 20;
         int[] counters = {startX, 0, 0, standaloneI};
-        boolean hadFirstPrevItem = false;
-        int bufferForNextAdd = 0;
 
-
-        for (ItemSwapSequence iss : listISS) {
+        for (int i = 0; i < listISS.size(); i++) {
+            ItemSwapSequence iss = listISS.get(i);
+//            java.util.concurrent.atomic.AtomicBoolean isSequence = new AtomicBoolean();
             if (lastKey[0] != iss.lastKey()) {
-                if (!hadFirstPrevItem) {
-                    bufferForNextAdd = 1;
-                    hadFirstPrevItem = true;
-                } else {
-                    counters[standaloneI] += 1 + bufferForNextAdd;
-                    counters[lastCountedTypeI] = standaloneI;
-                    bufferForNextAdd = 0;
+                int currentType = standaloneI;
+                if (i < listISS.size() - 1 && iss.newKey() == listISS.get(i + 1).lastKey()) {
+                    currentType = sequenceI;
+//                    isSequence.set(true);
                 }
+                counters[currentType] += 1;
+                counters[lastCountedTypeI] = currentType;
                 if (counters[standaloneI] - 1 == config.standaloneSwaps && useLimits) {
                     break;
                 }
@@ -123,16 +121,17 @@ public class AttributeSwapIndicator implements ModInitializer {
                 });
                 counters[widthI] += itemRenderStride;
             } else {
-                counters[sequenceI] += 1 + bufferForNextAdd;
+//                isSequence.set(true);
+                counters[sequenceI] += 1;
                 counters[lastCountedTypeI] = sequenceI;
-                bufferForNextAdd = 0;
             }
 
             boolean goodHotbar = iss.hotbarTick() == iss.addTick();
             boolean goodAttack = iss.attackTick() == iss.addTick();
             boolean successfulSwap = goodAttack && goodHotbar;
             doRender.ifPresent(graphics -> {
-                graphics.text(font, "--", counters[widthI], y, -1);
+                graphics.text(font, "--", counters[widthI], y, -1
+                        /*(isSequence.get() ? Color.YELLOW : Color.CYAN).getRGB()*/);
 
                 int goodRGB = new Color(0, 255, 0).getRGB();
                 int badRGB = new Color(255, 0, 0).getRGB();
@@ -166,20 +165,11 @@ public class AttributeSwapIndicator implements ModInitializer {
             }
         }
 
-        if (bufferForNextAdd != 0) {
-            counters[standaloneI] += bufferForNextAdd;
-        }
-
         counters[widthI] -= startX;
         return counters;
     }
 
     public static int getCurrentTick() {
-        int currentTick = mc.player != null ? mc.player.tickCount : 0;
-        if (lastTick > currentTick) {
-            setupCleanupTick();
-        }
-        lastTick = currentTick;
         return currentTick;
     }
 

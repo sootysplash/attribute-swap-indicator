@@ -71,6 +71,17 @@ java {
     withSourcesJar()
 }
 
+sourceSets {
+    main {
+        java {
+            exclude 'me/sootysplash/swap/Testing**'
+        }
+        resources {
+            exclude 'me/sootysplash/swap/Testing**'
+        }
+    }
+}
+
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }
