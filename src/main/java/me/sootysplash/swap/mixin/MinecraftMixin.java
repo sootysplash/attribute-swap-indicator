@@ -60,6 +60,17 @@ public class MinecraftMixin {
             return;
         }
 
+        int combo = 1;
+        for (int i = itemSwaps.size() - 1; i >= 0; i--) {
+            ItemSwapSequence current = itemSwaps.get(i);
+            if (current.lastKey() == selectKPD.lastKey()
+            && current.newKey() == selectKPD.key()
+            && current.successfulSwap()) {
+                combo = current.combo() + 1;
+                itemSwaps.remove(i);
+            }
+        }
+
         AttackKeyPressData attackTime = attack2PressTime.remove(attack2PressTime.size() - 1);
         attack2PressTime.clear();
         hotbarKey2PressTime.clear();
@@ -70,7 +81,8 @@ public class MinecraftMixin {
                 selectKPD.time(),
                 selectKPD.tick(),
                 attackTime.time(),
-                attackTime.tick()
+                attackTime.tick(),
+                combo
         ));
 
         int[] counters = AttributeSwapIndicator.getWidth(
@@ -105,7 +117,7 @@ public class MinecraftMixin {
     )
     private void onTick(CallbackInfo ci) {
         currentTick++;
-//        me.sootysplash.swap.Testing.onInputs();
+        me.sootysplash.swap.Testing.onInputs();
     }
 
 }

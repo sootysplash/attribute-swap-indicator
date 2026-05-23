@@ -13,13 +13,19 @@ public record ItemSwapSequence(int lastKey,
                                long attackTime,
                                int attackTick,
                                long addTime,
-                               int addTick) {
+                               int addTick,
+                               int combo) {
     public ItemSwapSequence(int lastKey,
                             int newKey,
                             long hotbarTime,
                             int hotbarTick,
                             long attackTime,
-                            int attackTick) {
-        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick());
+                            int attackTick,
+                            int combo) {
+        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick(), combo);
+    }
+
+    public boolean successfulSwap() {
+        return hotbarTick() == addTick() && attackTick() == addTick();
     }
 }

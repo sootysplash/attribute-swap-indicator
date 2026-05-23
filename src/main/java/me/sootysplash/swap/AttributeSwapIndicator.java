@@ -126,30 +126,43 @@ public class AttributeSwapIndicator implements ModInitializer {
                 counters[lastCountedTypeI] = sequenceI;
             }
 
-            boolean goodHotbar = iss.hotbarTick() == iss.addTick();
             boolean goodAttack = iss.attackTick() == iss.addTick();
-            boolean successfulSwap = goodAttack && goodHotbar;
+            boolean successfulSwap = iss.successfulSwap();
             doRender.ifPresent(graphics -> {
-                graphics.text(font, "--", counters[widthI], y, -1
+                String divider = "--";
+                int dividerWidth = font.width(divider);
+                int currWidth = counters[widthI];
+                graphics.text(font, divider, currWidth, y, -1
                         /*(isSequence.get() ? Color.YELLOW : Color.CYAN).getRGB()*/);
 
                 int goodRGB = new Color(0, 255, 0).getRGB();
                 int badRGB = new Color(255, 0, 0).getRGB();
                 int downwardsStride = 10;
-                int centerTextX = counters[widthI] - (int) (arrowRenderStride * 0.8);
                 long addCutOff = tickToTime.getOrDefault(iss.addTick() - 1, 0L);
 
                 String text = successfulSwap ? "✔" : ((!goodAttack
                                 ? "⚔:+" + (addCutOff - iss.attackTime())
                                 : "→:+" + (addCutOff - iss.hotbarTime())) + "ms");
 
+                int textWidth = font.width(text);
                 graphics.text(
                         font,
                         text,
-                        successfulSwap ? counters[widthI] : centerTextX,
+                        currWidth + dividerWidth / 2 - textWidth / 2,
                         y + downwardsStride * (successfulSwap ? 1 : 2),
                         successfulSwap ? goodRGB : badRGB
                 );
+
+                if (iss.combo() > 1 && successfulSwap) {
+                    String comboStr = "x" + iss.combo();
+                    graphics.text(
+                            font,
+                            comboStr,
+                            currWidth + dividerWidth / 2 - font.width(comboStr) / 2,
+                            y + downwardsStride * 2,
+                            goodRGB
+                    );
+                }
 
             });
             counters[widthI] += arrowRenderStride;
