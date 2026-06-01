@@ -211,20 +211,16 @@ public class ModMenu implements ModMenuApi {
                         }
 
                         @Override
-                        protected boolean allowPreClick(MouseButtonEvent event) {
+                        public void onClick(final MouseButtonEvent event, final boolean doubleClick) {
                             DragWidget sw = scaleWidget[0];
                             double mx = event.x();
                             double my = event.y();
                             if (sw.getX() < mx && sw.getY() < my &&
-                            sw.getX() + sw.getWidth() > mx && sw.getY() + sw.getHeight() > my) {
+                                    sw.getX() + sw.getWidth() > mx && sw.getY() + sw.getHeight() > my) {
                                 sw.onClick(event, false);
-                                return false;
+                                return;
                             }
-                            return true;
-                        }
-
-                        @Override
-                        protected void afterClick(final MouseButtonEvent event) {
+                            super.onClick(event, doubleClick);
                             startingPos[0] = currentOffset[0];
                             startingPos[1] = currentOffset[1];
                         }
@@ -273,14 +269,11 @@ public class ModMenu implements ModMenuApi {
                         }
 
                         @Override
-                        protected boolean allowPreClick(MouseButtonEvent event) {
-                            return true;
-                        }
-
-                        @Override
-                        protected void afterClick(final MouseButtonEvent event) {
+                        public void onClick(final MouseButtonEvent event, final boolean doubleClick) {
+                            super.onClick(event, doubleClick);
                             startingScale[0] = currentScale[0];
                         }
+
                     });
                 }
 
@@ -325,19 +318,11 @@ public class ModMenu implements ModMenuApi {
         @Override
         protected abstract void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a);
 
-        protected abstract boolean allowPreClick(final MouseButtonEvent event);
-
-        protected abstract void afterClick(final MouseButtonEvent event);
-
         @Override
         public void onClick(final MouseButtonEvent event, final boolean doubleClick) {
-            if (!allowPreClick(event)) {
-                return;
-            }
             isDraggingMovement = true;
             beganDragAt[0] = event.x();
             beganDragAt[1] = event.y();
-            afterClick(event);
         }
 
         @Override

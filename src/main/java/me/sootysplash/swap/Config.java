@@ -30,7 +30,7 @@ public class Config {
         try {
             Files.writeString(file, GSON.toJson(this));
         } catch (Throwable e) {
-            AttributeSwapIndicator.LOGGER.warn("{} could not save the config.", AttributeSwapIndicator.LOGGER.getName());
+            AttributeSwapIndicator.LOGGER.warn("{} couldn't save the config.", AttributeSwapIndicator.LOGGER.getName());
         }
     }
 
