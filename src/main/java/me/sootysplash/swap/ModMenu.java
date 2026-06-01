@@ -52,18 +52,18 @@ public class ModMenu implements ModMenuApi {
                     .build());
 
 
-            behavior.addEntry(cfgent.startFloatField(Component.nullToEmpty("Input Expire Seconds"), config.inputExpireSeconds)
+            behavior.addEntry(cfgent.startFloatField(Component.nullToEmpty("Swap Expire Seconds"), config.inputExpireSeconds)
                     .setDefaultValue(3)
                     .setMin(0)
-                    .setTooltip(Component.nullToEmpty("Seconds for inputs to expire"))
+                    .setTooltip(Component.nullToEmpty("Seconds for swaps to expire visually"))
                     .setSaveConsumer(newValue -> config.inputExpireSeconds = newValue)
                     .build());
 
 
-            behavior.addEntry(cfgent.startFloatField(Component.nullToEmpty("Swap Expire Seconds"), config.keyExpireSeconds)
-                    .setDefaultValue(1)
+            behavior.addEntry(cfgent.startFloatField(Component.nullToEmpty("Input Expire Seconds"), config.keyExpireSeconds)
+                    .setDefaultValue(0.1f)
                     .setMin(0)
-                    .setTooltip(Component.nullToEmpty("Seconds for swaps to expire visually"))
+                    .setTooltip(Component.nullToEmpty("Seconds for inputs to expire"))
                     .setSaveConsumer(newValue -> config.keyExpireSeconds = newValue)
                     .build());
 

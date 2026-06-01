@@ -214,6 +214,6 @@ public class AttributeSwapIndicator implements ModInitializer {
         if (stack.isEmpty()) {
             return new ItemStack(emptyItem);
         }
-        return stack;
+        return stack.copy();
     }
 }

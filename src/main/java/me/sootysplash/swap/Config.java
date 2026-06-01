@@ -19,7 +19,7 @@ public class Config {
     public int yOffset = 0;
 
     public float inputExpireSeconds = 3;
-    public float keyExpireSeconds = 1;
+    public float keyExpireSeconds = 0.1f;
 
     public int standaloneSwaps = 2;
     public int sequentialSwaps = 3;
