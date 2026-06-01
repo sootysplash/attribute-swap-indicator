@@ -86,7 +86,8 @@ public class MinecraftMixin {
         ));
 
         int[] counters = AttributeSwapIndicator.getWidth(
-                config,
+                config.standaloneSwaps,
+                config.sequentialSwaps,
                 0,
                 0,
                 itemSwaps,

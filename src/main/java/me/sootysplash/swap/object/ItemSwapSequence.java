@@ -1,5 +1,6 @@
 package me.sootysplash.swap.object;
 
+import me.sootysplash.swap.AttributeSwapIndicator;
 import net.minecraft.world.item.ItemStack;
 
 import static me.sootysplash.swap.AttributeSwapIndicator.*;
@@ -14,6 +15,7 @@ public record ItemSwapSequence(int lastKey,
                                int attackTick,
                                long addTime,
                                int addTick,
+                               long addCutoff,
                                int combo) {
     public ItemSwapSequence(int lastKey,
                             int newKey,
@@ -22,7 +24,35 @@ public record ItemSwapSequence(int lastKey,
                             long attackTime,
                             int attackTick,
                             int combo) {
-        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick(), combo);
+        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick(), tickToTime.getOrDefault(getCurrentTick() - 1, 0L), combo);
+    }
+    public ItemSwapSequence(int lastKey,
+                            int newKey,
+                            ItemStack lastStack,
+                            ItemStack newStack,
+                            int hotbarTick,
+                            int attackTick,
+                            int addTick,
+                            int combo) {
+        this(lastKey,
+                newKey,
+                lastStack,
+                newStack,
+                getApproximateTimeForTick(hotbarTick),
+                hotbarTick,
+                getApproximateTimeForTick(attackTick),
+                attackTick,
+                getApproximateTimeForTick(addTick),
+                addTick,
+                getApproximateTimeForTick(addTick - 1),
+                combo
+        );
+    }
+
+    public static long getApproximateTimeForTick(int tick) {
+        int nowTick = getCurrentTick();
+        return tickToTime.getOrDefault(nowTick, System.currentTimeMillis()) -
+                (nowTick - tick) * 50L; // 1000 ms in a second / 20 ticks a second == 50 ms per tick
     }
 
     public boolean successfulSwap() {

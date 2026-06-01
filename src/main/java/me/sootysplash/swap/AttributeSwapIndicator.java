@@ -16,6 +16,7 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.joml.Matrix3x2fStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,16 +82,31 @@ public class AttributeSwapIndicator implements ModInitializer {
         double scale = config.scale;
         double inverseScale = 1 / scale;
         graphics.pose().pushMatrix();
-        graphics.pose().translate(config.xOffset, config.yOffset);
-        graphics.pose().scale((float) scale, (float) scale);
-        int renderWidth = getWidth(config, 0, 0, itemSwaps, true, Optional.empty())[0];
-        int y = graphics.guiHeight() / 2 + 24;
-        int originX = graphics.guiWidth() / 2;
-        getWidth(config, (int) (originX * inverseScale) - renderWidth / 2 + 4, (int) (y * inverseScale), itemSwaps, true, Optional.of(graphics));
+        applyTransforms(graphics.pose(), (float) scale);
+        int renderWidth = getWidth(config.standaloneSwaps, config.sequentialSwaps, 0, 0, itemSwaps, true, Optional.empty())[0];
+        int[] xy = getOriginXY(graphics);
+        getWidth(config.standaloneSwaps, config.sequentialSwaps,
+                getXAfterWidth(config.xOffset * inverseScale + xy[0] * inverseScale, renderWidth), (int) (config.yOffset * inverseScale + xy[1] * inverseScale),
+                itemSwaps, true, Optional.of(graphics));
         graphics.pose().popMatrix();
     }
 
-    public static int[] getWidth(Config config,
+    public static void applyTransforms(Matrix3x2fStack stack, float scale) {
+        stack.scale(scale, scale);
+    }
+
+    public static final int magicNumberOffsetForCentering = 4;
+
+    public static int getXAfterWidth(double x, int width) {
+        return (int) (x) - width / 2 + magicNumberOffsetForCentering;
+    }
+
+    public static int[] getOriginXY(GuiGraphicsExtractor graphics) {
+        return new int[]{graphics.guiWidth() / 2, graphics.guiHeight() / 2 + 24};
+    }
+
+    public static int[] getWidth(int maxStandaloneSwaps,
+                                  int maxSequentialSwaps,
                                   int startX,
                                   int y,
                                   List<ItemSwapSequence> listISS,
@@ -113,7 +129,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                 }
                 counters[currentType] += 1;
                 counters[lastCountedTypeI] = currentType;
-                if (counters[standaloneI] - 1 == config.standaloneSwaps && useLimits) {
+                if (counters[standaloneI] - 1 == maxStandaloneSwaps && useLimits) {
                     break;
                 }
                 doRender.ifPresent(graphics -> {
@@ -138,11 +154,10 @@ public class AttributeSwapIndicator implements ModInitializer {
                 int goodRGB = new Color(0, 255, 0).getRGB();
                 int badRGB = new Color(255, 0, 0).getRGB();
                 int downwardsStride = 10;
-                long addCutOff = tickToTime.getOrDefault(iss.addTick() - 1, 0L);
 
                 String text = successfulSwap ? "✔" : ((!goodAttack
-                                ? "⚔:+" + (addCutOff - iss.attackTime())
-                                : "→:+" + (addCutOff - iss.hotbarTime())) + "ms");
+                                ? "⚔:+" + (iss.addCutoff() - iss.attackTime())
+                                : "→:+" + (iss.addCutoff() - iss.hotbarTime())) + "ms");
 
                 int textWidth = font.width(text);
                 graphics.text(
@@ -173,7 +188,7 @@ public class AttributeSwapIndicator implements ModInitializer {
             lastKey[0] = iss.newKey();
             counters[widthI] += itemRenderStride;
 
-            if (counters[sequenceI] == config.sequentialSwaps && useLimits) {
+            if (counters[sequenceI] == maxSequentialSwaps && useLimits) {
                 break;
             }
         }
