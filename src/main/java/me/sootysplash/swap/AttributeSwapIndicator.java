@@ -24,6 +24,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+// todo, add hit or miss indicator
+// todo, record video for showcase
 public class AttributeSwapIndicator implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("AttributeSwapIndicator");
 
