@@ -118,7 +118,7 @@ public class MinecraftMixin {
     )
     private void onTick(CallbackInfo ci) {
         currentTick++;
-        me.sootysplash.swap.Testing.onInputs();
+//        me.sootysplash.swap.Testing.onInputs();
     }
 
 }

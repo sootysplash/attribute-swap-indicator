@@ -134,6 +134,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                 }
                 doRender.ifPresent(graphics -> {
                     graphics.item(iss.lastStack(), counters[widthI], y);
+                    graphics.itemDecorations(font, iss.lastStack(), counters[widthI], y);
                 });
                 counters[widthI] += itemRenderStride;
             } else {
@@ -145,7 +146,7 @@ public class AttributeSwapIndicator implements ModInitializer {
             boolean goodAttack = iss.attackTick() == iss.addTick();
             boolean successfulSwap = iss.successfulSwap();
             doRender.ifPresent(graphics -> {
-                String divider = "--";
+                String divider = "->";
                 int dividerWidth = font.width(divider);
                 int currWidth = counters[widthI];
                 graphics.text(font, divider, currWidth, y, -1
@@ -184,6 +185,7 @@ public class AttributeSwapIndicator implements ModInitializer {
 
             doRender.ifPresent(graphics -> {
                 graphics.item(iss.newStack(), counters[widthI], y);
+                graphics.itemDecorations(font, iss.newStack(), counters[widthI], y);
             });
             lastKey[0] = iss.newKey();
             counters[widthI] += itemRenderStride;

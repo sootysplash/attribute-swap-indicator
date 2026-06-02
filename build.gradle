@@ -10,6 +10,15 @@ base {
     archivesName = project.archives_base_name
 }
 
+loom {
+    runs {
+        client {
+            programArgs "--username=Testaroo"
+            vmArg "-Dfabric.development=true"
+        }
+    }
+}
+
 
 repositories {
     // Add repositories to retrieve artifacts from in here.
