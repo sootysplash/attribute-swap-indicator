@@ -16,15 +16,17 @@ public record ItemSwapSequence(int lastKey,
                                long addTime,
                                int addTick,
                                long addCutoff,
-                               int combo) {
+                               int combo,
+                               boolean isHit) {
     public ItemSwapSequence(int lastKey,
                             int newKey,
                             long hotbarTime,
                             int hotbarTick,
                             long attackTime,
                             int attackTick,
-                            int combo) {
-        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick(), tickToTime.getOrDefault(getCurrentTick() - 1, 0L), combo);
+                            int combo,
+                            boolean isHit) {
+        this(lastKey, newKey, getForSlot(lastKey), getForSlot(newKey), hotbarTime, hotbarTick, attackTime, attackTick, System.currentTimeMillis(), getCurrentTick(), tickToTime.getOrDefault(getCurrentTick() - 1, 0L), combo, isHit);
     }
     public ItemSwapSequence(int lastKey,
                             int newKey,
@@ -33,7 +35,8 @@ public record ItemSwapSequence(int lastKey,
                             int hotbarTick,
                             int attackTick,
                             int addTick,
-                            int combo) {
+                            int combo,
+                            boolean isHit) {
         this(lastKey,
                 newKey,
                 lastStack,
@@ -45,7 +48,8 @@ public record ItemSwapSequence(int lastKey,
                 getApproximateTimeForTick(addTick),
                 addTick,
                 getApproximateTimeForTick(addTick - 1),
-                combo
+                combo,
+                isHit
         );
     }
 

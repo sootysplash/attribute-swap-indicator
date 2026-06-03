@@ -3,7 +3,7 @@
   "id": "attribute-swap-indicator",
   "version": "${version}",
   "name": "Attribute Swap Indicator",
-  "description": "Adds a GUI element to observe your success/failure with attribute swaps.",
+  "description": "Adds a HUD element to observe your success/failure with attribute swaps.",
   "authors": [
     "Sootysplash"
   ],

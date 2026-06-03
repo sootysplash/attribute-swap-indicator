@@ -146,8 +146,8 @@ public class ModMenu implements ModMenuApi {
                     int nowTick = getCurrentTick() - cleanupTick;
 
 
-                    iss.add(new ItemSwapSequence(0, 1, oneA, twoA, nowTick - 4, nowTick - 4, nowTick - 4, 2));
-                    iss.add(new ItemSwapSequence(1, 4, twoA, threeA, nowTick - 4, nowTick - 2, nowTick - 2, 1));
+                    iss.add(new ItemSwapSequence(0, 1, oneA, twoA, nowTick - 4, nowTick - 4, nowTick - 4, 2, true));
+                    iss.add(new ItemSwapSequence(1, 4, twoA, threeA, nowTick - 4, nowTick - 2, nowTick - 2, 1, false));
 
                     addRenderableOnly((graphics, _, _, _) -> {
                         int x = graphics.guiWidth() / 2;

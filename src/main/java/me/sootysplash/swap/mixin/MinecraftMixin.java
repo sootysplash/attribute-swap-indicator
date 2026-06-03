@@ -6,6 +6,7 @@ import me.sootysplash.swap.object.AttackKeyPressData;
 import me.sootysplash.swap.object.ItemSwapSequence;
 import me.sootysplash.swap.object.HotbarKeyPressData;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -82,7 +83,8 @@ public class MinecraftMixin {
                 selectKPD.tick(),
                 attackTime.time(),
                 attackTime.tick(),
-                combo
+                combo,
+                mc.crosshairPickEntity instanceof LivingEntity
         ));
 
         int[] counters = AttributeSwapIndicator.getWidth(

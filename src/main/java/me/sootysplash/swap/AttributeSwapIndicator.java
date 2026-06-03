@@ -158,18 +158,45 @@ public class AttributeSwapIndicator implements ModInitializer {
                 int badRGB = new Color(255, 0, 0).getRGB();
                 int downwardsStride = 10;
 
-                String text = successfulSwap ? "✔" : ((!goodAttack
-                                ? "⚔:+" + (iss.addCutoff() - iss.attackTime())
-                                : "→:+" + (iss.addCutoff() - iss.hotbarTime())) + "ms");
+                String topText = "✔";
+                String bottomText = null;
 
-                int textWidth = font.width(text);
+                if (!successfulSwap) {
+                    bottomText = (!goodAttack
+                            ? "⚔:+" + (iss.addCutoff() - iss.attackTime())
+                            : "→:+" + (iss.addCutoff() - iss.hotbarTime())) + "ms";
+                }
+
+                // every other icon looks so bad
+                topText += "⌖";
+
+                String firstChar = topText.substring(0, 1);
+                int initialTopTextW = dividerWidth / 2 - font.width(topText) / 2;
                 graphics.text(
                         font,
-                        text,
-                        currWidth + dividerWidth / 2 - textWidth / 2,
-                        y + downwardsStride * (successfulSwap ? 1 : 2),
+                        firstChar,
+                        currWidth + initialTopTextW,
+                        y + downwardsStride,
                         successfulSwap ? goodRGB : badRGB
                 );
+
+                graphics.text(
+                        font,
+                        topText.substring(1, 2),
+                        currWidth + initialTopTextW + font.width(firstChar),
+                        y + downwardsStride,
+                        iss.isHit() ? goodRGB : badRGB
+                );
+
+                if (bottomText != null) {
+                    graphics.text(
+                            font,
+                            bottomText,
+                            currWidth + dividerWidth / 2 - font.width(bottomText) / 2,
+                            y + downwardsStride * 2,
+                            badRGB
+                    );
+                }
 
                 if (iss.combo() > 1 && successfulSwap) {
                     String comboStr = "x" + iss.combo();
