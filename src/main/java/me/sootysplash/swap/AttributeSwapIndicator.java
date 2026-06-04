@@ -24,7 +24,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-// todo, add hit or miss indicator
 // todo, record video for showcase
 public class AttributeSwapIndicator implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("AttributeSwapIndicator");
@@ -85,9 +84,9 @@ public class AttributeSwapIndicator implements ModInitializer {
         double inverseScale = 1 / scale;
         graphics.pose().pushMatrix();
         applyTransforms(graphics.pose(), (float) scale);
-        int renderWidth = getWidth(config.standaloneSwaps, config.sequentialSwaps, 0, 0, itemSwaps, true, Optional.empty())[0];
+        int renderWidth = getWidth(config, 0, 0, itemSwaps, true, Optional.empty())[0];
         int[] xy = getOriginXY(graphics);
-        getWidth(config.standaloneSwaps, config.sequentialSwaps,
+        getWidth(config,
                 getXAfterWidth(config.xOffset * inverseScale + xy[0] * inverseScale, renderWidth), (int) (config.yOffset * inverseScale + xy[1] * inverseScale),
                 itemSwaps, true, Optional.of(graphics));
         graphics.pose().popMatrix();
@@ -107,13 +106,14 @@ public class AttributeSwapIndicator implements ModInitializer {
         return new int[]{graphics.guiWidth() / 2, graphics.guiHeight() / 2 + 24};
     }
 
-    public static int[] getWidth(int maxStandaloneSwaps,
-                                  int maxSequentialSwaps,
+    public static int[] getWidth(Config config,
                                   int startX,
                                   int y,
                                   List<ItemSwapSequence> listISS,
                                   boolean useLimits,
                                   Optional<GuiGraphicsExtractor> doRender) {
+        int successColor = config.successColor;
+        int failureColor = config.failureColor;
         int[] lastKey = {-1};
         Font font = mc.font;
         int itemRenderStride = 28;
@@ -131,7 +131,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                 }
                 counters[currentType] += 1;
                 counters[lastCountedTypeI] = currentType;
-                if (counters[standaloneI] - 1 == maxStandaloneSwaps && useLimits) {
+                if (counters[standaloneI] - 1 == config.standaloneSwaps && useLimits) {
                     break;
                 }
                 doRender.ifPresent(graphics -> {
@@ -154,39 +154,52 @@ public class AttributeSwapIndicator implements ModInitializer {
                 graphics.text(font, divider, currWidth, y, -1
                         /*(isSequence.get() ? Color.YELLOW : Color.CYAN).getRGB()*/);
 
-                int goodRGB = new Color(0, 255, 0).getRGB();
-                int badRGB = new Color(255, 0, 0).getRGB();
                 int downwardsStride = 10;
 
                 String topText = "✔";
                 String bottomText = null;
 
                 if (!successfulSwap) {
-                    bottomText = (!goodAttack
-                            ? "⚔:+" + (iss.addCutoff() - iss.attackTime())
-                            : "→:+" + (iss.addCutoff() - iss.hotbarTime())) + "ms";
+                    topText = "";
+                    bottomText = !goodAttack ? "⚔" : "→";
+                    if (config.showTimings) {
+                        bottomText += ":+" + (!goodAttack
+                                ? iss.addCutoff() - iss.attackTime()
+                                : iss.addCutoff() - iss.hotbarTime()) + "ms";
+
+                    }
                 }
 
-                // every other icon looks so bad
-                topText += "⌖";
+                if (config.showHitIndicator) {
+                    // every other icon looks so bad
+                    topText += "⌖";
+                }
 
-                String firstChar = topText.substring(0, 1);
-                int initialTopTextW = dividerWidth / 2 - font.width(topText) / 2;
-                graphics.text(
-                        font,
-                        firstChar,
-                        currWidth + initialTopTextW,
-                        y + downwardsStride,
-                        successfulSwap ? goodRGB : badRGB
-                );
+                int targetStart = 0;
+                if (!topText.isBlank()) {
+                    String firstChar = topText.substring(0, 1);
+                    int initialTopTextW = dividerWidth / 2 - font.width(topText) / 2;
+                    if (successfulSwap) {
+                        targetStart = 1;
+                        graphics.text(
+                                font,
+                                firstChar,
+                                currWidth + initialTopTextW,
+                                y + downwardsStride,
+                                successColor
+                        );
+                    }
+                    if (config.showHitIndicator) {
+                        graphics.text(
+                                font,
+                                topText.substring(targetStart, targetStart + 1),
+                                currWidth + initialTopTextW + (successfulSwap ? font.width(firstChar) : 0),
+                                y + downwardsStride,
+                                iss.isHit() ? successColor : failureColor
+                        );
+                    }
+                }
 
-                graphics.text(
-                        font,
-                        topText.substring(1, 2),
-                        currWidth + initialTopTextW + font.width(firstChar),
-                        y + downwardsStride,
-                        iss.isHit() ? goodRGB : badRGB
-                );
 
                 if (bottomText != null) {
                     graphics.text(
@@ -194,7 +207,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                             bottomText,
                             currWidth + dividerWidth / 2 - font.width(bottomText) / 2,
                             y + downwardsStride * 2,
-                            badRGB
+                            failureColor
                     );
                 }
 
@@ -205,7 +218,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                             comboStr,
                             currWidth + dividerWidth / 2 - font.width(comboStr) / 2,
                             y + downwardsStride * 2,
-                            goodRGB
+                            successColor
                     );
                 }
 
@@ -219,7 +232,7 @@ public class AttributeSwapIndicator implements ModInitializer {
             lastKey[0] = iss.newKey();
             counters[widthI] += itemRenderStride;
 
-            if (counters[sequenceI] == maxSequentialSwaps && useLimits) {
+            if (counters[sequenceI] == config.sequentialSwaps && useLimits) {
                 break;
             }
         }

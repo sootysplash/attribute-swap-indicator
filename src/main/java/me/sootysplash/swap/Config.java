@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
+import java.awt.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -20,6 +21,11 @@ public class Config {
 
     public float inputExpireSeconds = 3;
     public float keyExpireSeconds = 0.1f;
+
+    public int successColor = Color.GREEN.getRGB();
+    public int failureColor = Color.RED.getRGB();
+    public boolean showTimings = true;
+    public boolean showHitIndicator = true;
 
     public int standaloneSwaps = 2;
     public int sequentialSwaps = 3;

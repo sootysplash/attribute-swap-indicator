@@ -90,7 +90,33 @@ public class ModMenu implements ModMenuApi {
 
             ConfigCategory display = builder.getOrCreateCategory(Component.nullToEmpty("Display"));
 
-            display.addEntry(new BooleanListEntry(Component.nullToEmpty("Edit HUD"), false, cfgent.getResetButtonKey(), null, null, () ->
+            display.addEntry(cfgent.startAlphaColorField(Component.nullToEmpty("Success Color"), config.successColor)
+                    .setDefaultValue(Color.GREEN.getRGB())
+                    .setTooltip(Component.nullToEmpty("The color to use when an action is successful"))
+                    .setSaveConsumer(newValue -> config.successColor = newValue)
+                    .build());
+
+            display.addEntry(cfgent.startAlphaColorField(Component.nullToEmpty("Failure Color"), config.failureColor)
+                    .setDefaultValue(Color.RED.getRGB())
+                    .setTooltip(Component.nullToEmpty("The color to use when an action fails"))
+                    .setSaveConsumer(newValue -> config.failureColor = newValue)
+                    .build());
+
+            display.addEntry(cfgent.startBooleanToggle(Component.nullToEmpty("Show Swap Timings"), config.showTimings)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.nullToEmpty("Show how many milliseconds off you were from a swap"))
+                    .setSaveConsumer(newValue -> config.showTimings = newValue)
+                    .build());
+
+            display.addEntry(cfgent.startBooleanToggle(Component.nullToEmpty("Show Hit Indicator"), config.showHitIndicator)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.nullToEmpty("Show if your swap was able to hit or not"))
+                    .setSaveConsumer(newValue -> config.showHitIndicator = newValue)
+                    .build());
+
+            ConfigCategory layout = builder.getOrCreateCategory(Component.nullToEmpty("Layout"));
+
+            layout.addEntry(new BooleanListEntry(Component.nullToEmpty("Edit HUD"), false, cfgent.getResetButtonKey(), null, null, () ->
                     Optional.of(mc.level == null
                             ? new Component[]{Component.nullToEmpty("You can only edit the HUD in a world")}
                             : new Component[]{Component.nullToEmpty("Press Escape to cancel"), Component.nullToEmpty("Press Enter to save")}
@@ -107,7 +133,7 @@ public class ModMenu implements ModMenuApi {
                 }
             });
 
-            display.addEntry(cfgent.startDoubleField(Component.nullToEmpty("Scale"), config.scale)
+            layout.addEntry(cfgent.startDoubleField(Component.nullToEmpty("Scale"), config.scale)
                     .setMin(getScaleLimits()[0])
                     .setMax(getScaleLimits()[1])
                     .setDefaultValue(1)
@@ -115,13 +141,13 @@ public class ModMenu implements ModMenuApi {
                     .setSaveConsumer(newValue -> config.scale = newValue)
                     .build());
 
-            display.addEntry(cfgent.startIntField(Component.nullToEmpty("X Offset"), config.xOffset)
+            layout.addEntry(cfgent.startIntField(Component.nullToEmpty("X Offset"), config.xOffset)
                     .setDefaultValue(0)
                     .setTooltip(Component.nullToEmpty("The horizontal offset for the widget"))
                     .setSaveConsumer(newValue -> config.xOffset = newValue)
                     .build());
 
-            display.addEntry(cfgent.startIntField(Component.nullToEmpty("Y Offset"), config.yOffset)
+            layout.addEntry(cfgent.startIntField(Component.nullToEmpty("Y Offset"), config.yOffset)
                     .setDefaultValue(0)
                     .setTooltip(Component.nullToEmpty("The vertical offset for the widget"))
                     .setSaveConsumer(newValue -> config.yOffset = newValue)
@@ -146,8 +172,8 @@ public class ModMenu implements ModMenuApi {
                     int nowTick = getCurrentTick() - cleanupTick;
 
 
-                    iss.add(new ItemSwapSequence(0, 1, oneA, twoA, nowTick - 4, nowTick - 4, nowTick - 4, 2, true));
-                    iss.add(new ItemSwapSequence(1, 4, twoA, threeA, nowTick - 4, nowTick - 2, nowTick - 2, 1, false));
+                    iss.add(new ItemSwapSequence(0, 1, oneA, twoA, nowTick - 4, nowTick - 4, nowTick - 4, 2, false));
+                    iss.add(new ItemSwapSequence(1, 4, twoA, threeA, nowTick - 4, nowTick - 2, nowTick - 2, 1, true));
 
                     addRenderableOnly((graphics, _, _, _) -> {
                         int x = graphics.guiWidth() / 2;
@@ -172,7 +198,7 @@ public class ModMenu implements ModMenuApi {
                             double inverseScale = 1 / currentScale[0];
 
                             int[] origXY = getOriginXY(graphics);
-                            int width = AttributeSwapIndicator.getWidth(4, 4, 0, 0, iss, false, Optional.empty())[0];
+                            int width = AttributeSwapIndicator.getWidth(config, 0, 0, iss, false, Optional.empty())[0];
                             int[] drawXY = new int[]{
                                     getXAfterWidth(currentOffset[0] * inverseScale + origXY[0] * inverseScale, width),
                                     (int) (currentOffset[1] * inverseScale + origXY[1] * inverseScale)};
@@ -193,7 +219,7 @@ public class ModMenu implements ModMenuApi {
 
                             graphics.pose().pushMatrix();
                             applyTransforms(graphics.pose(), (float) currentScale[0]);
-                            AttributeSwapIndicator.getWidth(4, 4,
+                            AttributeSwapIndicator.getWidth(config,
                                     drawXY[0],
                                     drawXY[1],
                                     iss, false, Optional.of(graphics));
