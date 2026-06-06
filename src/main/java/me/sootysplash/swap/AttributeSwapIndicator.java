@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.Item;
@@ -71,11 +71,11 @@ public class AttributeSwapIndicator implements ModInitializer {
         setupCleanupTick();
     }
 
-    private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
+    private static void extract(GuiGraphics graphics, DeltaTracker tickCounter) {
         internalExtract(graphics);
     }
 
-    private static void internalExtract(GuiGraphicsExtractor graphics) {
+    private static void internalExtract(GuiGraphics graphics) {
         Config config = Config.getInstance();
         if (!config.enabled) {
             return;
@@ -102,7 +102,7 @@ public class AttributeSwapIndicator implements ModInitializer {
         return (int) (x) - width / 2 + magicNumberOffsetForCentering;
     }
 
-    public static int[] getOriginXY(GuiGraphicsExtractor graphics) {
+    public static int[] getOriginXY(GuiGraphics graphics) {
         return new int[]{graphics.guiWidth() / 2, graphics.guiHeight() / 2 + 24};
     }
 
@@ -111,7 +111,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                                   int y,
                                   List<ItemSwapSequence> listISS,
                                   boolean useLimits,
-                                  Optional<GuiGraphicsExtractor> doRender) {
+                                  Optional<GuiGraphics> doRender) {
         int successColor = config.successColor;
         int failureColor = config.failureColor;
         int[] lastKey = {-1};
@@ -135,8 +135,8 @@ public class AttributeSwapIndicator implements ModInitializer {
                     break;
                 }
                 doRender.ifPresent(graphics -> {
-                    graphics.item(iss.lastStack(), counters[widthI], y);
-                    graphics.itemDecorations(font, iss.lastStack(), counters[widthI], y);
+                    graphics.renderItem(iss.lastStack(), counters[widthI], y);
+                    graphics.renderItemDecorations(font, iss.lastStack(), counters[widthI], y);
                 });
                 counters[widthI] += itemRenderStride;
             } else {
@@ -151,7 +151,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                 String divider = "->";
                 int dividerWidth = font.width(divider);
                 int currWidth = counters[widthI];
-                graphics.text(font, divider, currWidth, y, -1
+                graphics.drawString(font, divider, currWidth, y, -1
                         /*(isSequence.get() ? Color.YELLOW : Color.CYAN).getRGB()*/);
 
                 int downwardsStride = 10;
@@ -181,7 +181,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                     int initialTopTextW = dividerWidth / 2 - font.width(topText) / 2;
                     if (successfulSwap) {
                         targetStart = 1;
-                        graphics.text(
+                        graphics.drawString(
                                 font,
                                 firstChar,
                                 currWidth + initialTopTextW,
@@ -190,7 +190,7 @@ public class AttributeSwapIndicator implements ModInitializer {
                         );
                     }
                     if (config.showHitIndicator) {
-                        graphics.text(
+                        graphics.drawString(
                                 font,
                                 topText.substring(targetStart, targetStart + 1),
                                 currWidth + initialTopTextW + (successfulSwap ? font.width(firstChar) : 0),
@@ -202,7 +202,7 @@ public class AttributeSwapIndicator implements ModInitializer {
 
 
                 if (bottomText != null) {
-                    graphics.text(
+                    graphics.drawString(
                             font,
                             bottomText,
                             currWidth + dividerWidth / 2 - font.width(bottomText) / 2,
@@ -213,7 +213,7 @@ public class AttributeSwapIndicator implements ModInitializer {
 
                 if (iss.combo() > 1 && successfulSwap) {
                     String comboStr = "x" + iss.combo();
-                    graphics.text(
+                    graphics.drawString(
                             font,
                             comboStr,
                             currWidth + dividerWidth / 2 - font.width(comboStr) / 2,
@@ -226,8 +226,8 @@ public class AttributeSwapIndicator implements ModInitializer {
             counters[widthI] += arrowRenderStride;
 
             doRender.ifPresent(graphics -> {
-                graphics.item(iss.newStack(), counters[widthI], y);
-                graphics.itemDecorations(font, iss.newStack(), counters[widthI], y);
+                graphics.renderItem(iss.newStack(), counters[widthI], y);
+                graphics.renderItemDecorations(font, iss.newStack(), counters[widthI], y);
             });
             lastKey[0] = iss.newKey();
             counters[widthI] += itemRenderStride;
