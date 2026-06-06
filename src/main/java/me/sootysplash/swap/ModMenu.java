@@ -175,7 +175,7 @@ public class ModMenu implements ModMenuApi {
                     iss.add(new ItemSwapSequence(0, 1, oneA, twoA, nowTick - 4, nowTick - 4, nowTick - 4, 2, false));
                     iss.add(new ItemSwapSequence(1, 4, twoA, threeA, nowTick - 4, nowTick - 2, nowTick - 2, 1, true));
 
-                    addRenderableOnly((graphics, _, _, _) -> {
+                    addRenderableOnly((graphics, a, b, c) -> {
                         int x = graphics.guiWidth() / 2;
                         int y = graphics.guiHeight() / 2;
                         int col = Color.GRAY.getRGB();

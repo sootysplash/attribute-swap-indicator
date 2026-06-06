@@ -19,7 +19,7 @@ public class KeyMappingMixin {
     private static boolean hadRightClick = false;
 
     @Inject(
-            method = "lambda$click$0",
+            method = "method_74182",
             at = @At(value = "HEAD")
     )
     private static void onHandleHead(KeyMapping keyMapping, CallbackInfo ci) {
