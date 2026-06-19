@@ -162,7 +162,7 @@ public class ModMenu implements ModMenuApi {
         mc.execute(() -> {
             int[] currentOffset = new int[]{config.xOffset, config.yOffset};
             double[] currentScale = new double[]{config.scale};
-            mc.setScreen(new Screen(Component.nullToEmpty("attribute-swap-indicator.hud-editor")) {
+            mc.gui.setScreen(new Screen(Component.nullToEmpty("attribute-swap-indicator.hud-editor")) {
                 {
                     List<ItemSwapSequence> iss = new ArrayList<>();
 
@@ -321,7 +321,7 @@ public class ModMenu implements ModMenuApi {
 
                 @Override
                 public void onClose() {
-                    mc.setScreen(new ModMenu().getModConfigScreenFactory().create(null));
+                    mc.gui.setScreen(new ModMenu().getModConfigScreenFactory().create(null));
                 }
 
                 @Override
